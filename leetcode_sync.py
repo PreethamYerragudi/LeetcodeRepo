@@ -70,7 +70,8 @@ def save_solution(submission):
     code = submission['code']
     number = submission['question_id']
     try:
-        title, difficulty = get_problem_by_number(int(number), fetch_problem_data())
+        title, difficulty = get_problem_by_number(int(number),
+                                                  fetch_problem_data())
     except Exception as e:
         print(f"Problem not found: {number}")
         return
@@ -94,8 +95,8 @@ def save_solution(submission):
 
 def auto_commit_and_push():
     est = pytz.timezone('US/Eastern')
-    now = datetime.now(est).strftime("%Y-%m-%d %H:%M:%S")
-    commit_message = f"Auto update LeetCode solutions on {now}"
+    now = datetime.now(est).strftime("%Y-%m-%d")
+    commit_message = f"LeetCode solutions for {now}"
     print(f"{commit_message}")
     try:
         subprocess.run(["git", "add", "."], check=True)
