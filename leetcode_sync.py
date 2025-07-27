@@ -89,14 +89,16 @@ def save_solution(submission):
             f.write(f"# Difficulty: {difficulty}\n")
             f.write(code)
         print(f"Saved: {filepath}")
+        return number
     else:
         print(f"Already exists: {filepath}")
+        return None
 
 
-def auto_commit_and_push():
+def auto_commit_and_push(num):
     est = pytz.timezone('US/Eastern')
     now = datetime.now(est).strftime("%Y-%m-%d")
-    commit_message = f"LeetCode solutions for {now}"
+    commit_message = f"LeetCode Solution for Problem #{num}"
     print(f"{commit_message}")
     try:
         subprocess.run(["git", "add", "."], check=True)
@@ -111,8 +113,10 @@ def sync_leetcode():
     submissions = fetch_submissions()
     for sub in submissions:
         try:
-            save_solution(sub)
+            num = save_solution(sub)
+            if num:
+                auto_commit_and_push(num)
         except Exception as e:
             print(e)
 
-    auto_commit_and_push()
+    
