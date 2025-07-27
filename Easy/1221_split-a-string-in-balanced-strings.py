@@ -1,5 +1,5 @@
-# Problem 1341: Movie Rating
-# Difficulty: Medium
+# Problem 1221: Split a String in Balanced Strings
+# Difficulty: Easy
 class Solution:
     def balancedStringSplit(self, s: str) -> int:
         count = 0

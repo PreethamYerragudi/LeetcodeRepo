@@ -39,15 +39,14 @@ def fetch_problem_data():
         exit()
 
 
-def get_problem_by_id(problem_id, problems):
-    """Get problem by question_id (from submissions) or frontend_question_id"""
+def get_problem_by_number(slug, problems):
     for problem in problems:
-        if (problem['stat']['frontend_question_id'] == int(problem_id) or \
-           (problem['stat']['question_id'] == int(problem_id)):
+        if problem['stat']['question__title_slug'] == slug:
             title = problem['stat']['question__title']
             difficulty = difficulty_map[problem['difficulty']['level']]
-            return title, difficulty, problem['stat']['frontend_question_id']
-    return None, None, None
+            frontend_id = problem['stat']['frontend_question_id']
+            return frontend_id, title, difficulty
+    raise ValueError(f"Problem not found for slug: {slug}")
 
 
 def fetch_submissions():
@@ -62,35 +61,23 @@ def fetch_submissions():
     today_submissions = []
 
     for item in data['submissions_dump']:
-        if item['status_display'] == 'Accepted' and start_ts <= item['timestamp'] < end_ts:
+        if item['status_display'] == 'Accepted' and start_ts <= item[
+                'timestamp'] < end_ts:
             today_submissions.append(item)
 
     return today_submissions
 
 
-def save_solution(submission, problems):
+def save_solution(submission):
     code = submission['code']
-    question_id = submission['question_id']  # This is the internal question_id
-    title_slug = submission['title_slug']
-
-    # Try to find the problem by either frontend_question_id or question_id
-    title, difficulty, frontend_id = get_problem_by_id(question_id, problems)
-
-    if not title:
-        # If not found by ID, try to find by title slug
-        for problem in problems:
-            if problem['stat']['question__title_slug'] == title_slug:
-                title = problem['stat']['question__title']
-                difficulty = difficulty_map[problem['difficulty']['level']]
-                frontend_id = problem['stat']['frontend_question_id']
-                break
-
-    if not title:
-        print(f"Problem not found for submission: {submission}")
-        return None
-
+    slug = submission['title_slug']
+    try:
+        number, title, difficulty = get_problem_by_number(slug, fetch_problem_data())
+    except Exception as e:
+        print(f"Problem not found: {number}")
+        return
     # Format filename
-    filename = f"{frontend_id}_{title.lower().replace(' ', '-')}.py"
+    filename = f"{number}_{title.lower().replace(' ', '-')}.py"
     folder = difficulty.capitalize()
 
     if not os.path.exists(folder):
@@ -99,12 +86,11 @@ def save_solution(submission, problems):
     filepath = os.path.join(folder, filename)
     if not os.path.exists(filepath):
         with open(filepath, 'w') as f:
-            f.write(f"# Problem {frontend_id}: {title}\n")
+            f.write(f"# Problem {number}: {title}\n")
             f.write(f"# Difficulty: {difficulty}\n")
-            f.write(f"# URL: https://leetcode.com/problems/{title_slug}/\n")
             f.write(code)
         print(f"Saved: {filepath}")
-        return frontend_id
+        return number
     else:
         print(f"Already exists: {filepath}")
         return None
@@ -113,7 +99,7 @@ def save_solution(submission, problems):
 def auto_commit_and_push(num):
     est = pytz.timezone('US/Eastern')
     now = datetime.now(est).strftime("%Y-%m-%d")
-    commit_message = f"LeetCode Solution for Problem #{num}"
+    commit_message = f"LeetCode solution for Problem #{num}"
     print(f"{commit_message}")
     try:
         subprocess.run(["git", "add", "."], check=True)
@@ -125,18 +111,13 @@ def auto_commit_and_push(num):
 
 
 def sync_leetcode():
-    problems = fetch_problem_data()  # Fetch all problems once
     submissions = fetch_submissions()
-
-    # Process submissions in reverse chronological order
-    for sub in reversed(submissions):
+    for sub in submissions:
         try:
-            num = save_solution(sub, problems)
+            num = save_solution(sub)
             if num:
                 auto_commit_and_push(num)
         except Exception as e:
-            print(f"Error processing submission: {e}")
+            print(e)
 
-
-if __name__ == "__main__":
-    sync_leetcode()
+    
