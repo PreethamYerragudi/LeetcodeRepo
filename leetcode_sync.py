@@ -98,7 +98,6 @@ def save_solution(submission):
 
 def auto_commit_and_push(num):
     est = pytz.timezone('US/Eastern')
-    now = datetime.now(est).strftime("%Y-%m-%d")
     commit_message = f"LeetCode solution for Problem #{num}"
     print(f"{commit_message}")
     try:
