@@ -24,10 +24,8 @@ HEADERS = {
 def get_today_timestamp_range():
     est = pytz.timezone('US/Eastern')
     now = datetime.now(est)
-    now = now - timedelta(days= 1)
-    start = est.localize(datetime(now.year, now.month, now.day, 0, 1))  # 12:01 AM
-    end = est.localize(datetime(now.year, now.month, now.day, 23, 59))  # 11:59 PM
-
+    start = datetime(now.year, now.month, now.day)
+    end = start + timedelta(days=1)
     return int(start.timestamp()), int(end.timestamp())
 
 
@@ -56,6 +54,7 @@ def fetch_submissions():
     res = requests.get(url, headers=HEADERS)
     if res.status_code != 200:
         print("Error fetching submissions.")
+        print(res)
         return []
 
     data = res.json()
@@ -100,6 +99,7 @@ def save_solution(submission):
 
 def auto_commit_and_push(num):
     est = pytz.timezone('US/Eastern')
+    now = datetime.now(est).strftime("%Y-%m-%d")
     commit_message = f"LeetCode solution for Problem #{num}"
     print(f"{commit_message}")
     try:
