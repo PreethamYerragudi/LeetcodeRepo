@@ -24,8 +24,9 @@ HEADERS = {
 def get_today_timestamp_range():
     est = pytz.timezone('US/Eastern')
     now = datetime.now(est)
-    start = datetime(now.year, now.month, now.day)
-    end = start + timedelta(days=1)
+    start = datetime(now.year, now.month, now.day) 
+    end = start
+    start = start - timedelta(days=1)
     return int(start.timestamp()), int(end.timestamp())
 
 
