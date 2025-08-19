@@ -24,10 +24,15 @@ HEADERS = {
 def get_today_timestamp_range():
     est = pytz.timezone('US/Eastern')
     now = datetime.now(est)
-    start = datetime(now.year, now.month, now.day) 
-    end = start
-    start = start - timedelta(days=1)
-    return int(start.timestamp()), int(end.timestamp())
+
+    # Find the most recent Sunday
+    start_of_week = now - timedelta(days=now.weekday() + 1 if now.weekday() != 6 else 0)
+    start_of_week = datetime(start_of_week.year, start_of_week.month, start_of_week.day, tzinfo=est)
+
+    # End of week is Saturday 23:59:59
+    end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59)
+
+    return int(start_of_week.timestamp()), int(end_of_week.timestamp())
 
 
 def fetch_problem_data():
@@ -100,7 +105,6 @@ def save_solution(submission):
 
 def auto_commit_and_push(num):
     est = pytz.timezone('US/Eastern')
-    now = datetime.now(est).strftime("%Y-%m-%d")
     commit_message = f"LeetCode solution for Problem #{num}"
     print(f"{commit_message}")
     try:
