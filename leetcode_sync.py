@@ -41,8 +41,7 @@ def fetch_problem_data():
     if response.status_code == 200:
         return response.json()['stat_status_pairs']
     else:
-        print("Failed to fetch problem data.")
-        exit()
+        raise Exception(f"Error fetching submissions: {res.status_code}")
 
 
 def get_problem_by_number(slug, problems):
